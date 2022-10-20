@@ -23,20 +23,22 @@ import {
 } from "./utils/requests";
 import { useEffect, useState } from "react";
 
-import LineChart  from "./components/charts/LineChart";
+import LineChart from "./components/charts/LineChart";
+import MonthPrice from "./components/MonthPrice";
+import PriceEvolution from "./components/PriceEvolution";
 
 function App() {
 
-  const [ brands, setBrands ] = useState([]);
-  const [ vehicles, setVehicles ] = useState([]);
-  const [ vehicleYears, setVehicleYears ] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [vehicleYears, setVehicleYears] = useState([]);
 
-  const [ selectedBrand, setSelectedBrand ] = useState(null);
-  const [ selectedVehicle, setSelectedVehicle ] = useState(null);
-  const [ selectedVehicleYear, setSelectedVehicleYear ] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState(null);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [selectedVehicleYear, setSelectedVehicleYear] = useState('');
 
-  const [ chartData, setChartData ] = useState(null);
-  const [ isLoading, setIsLoading ] = useState(false);
+  const [chartData, setChartData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     getBrands().then((brands) => {
@@ -89,46 +91,64 @@ function App() {
   return (
     <div className="App h-screen max-w-full">
       <div className="flex flex-col mt-10">
-        { isLoading && <LinearProgress /> }
+        { isLoading && <LinearProgress/> }
         <section className="flex m-auto flex-wrap mt-2">
-        <div>
-          <Autocomplete
-            disablePortal
-            options={brands}
-            sx={{ width: 200 }}
-            onChange={(e, brand) => setSelectedBrand(brand)}
-            renderInput={(params) => <TextField {...params} label="Marcas" />}
-          />
-        </div>
-        <div>
-          <Autocomplete
-            disablePortal
-            disabled={!selectedBrand}
-            options={vehicles}
-            sx={{ width: 500 }}
-            onChange={(e, vehicle) => setSelectedVehicle(vehicle)}
-            renderInput={(params) => <TextField {...params} label="Veiculos" />}
-          />
-        </div>
-        <div>
-          <FormControl sx={{ m: 1, minWidth: 80 }}>
-            <InputLabel id="demo-simple-select-autowidth-label">Ano</InputLabel>
-            <Select
-              disabled={!selectedVehicle}
-              value={selectedVehicleYear}
-              onChange={(e) => { setSelectedVehicleYear(e.target.value) }}
-              input={<OutlinedInput label="Name" />}
-            >
-              {vehicleYears?.map((year) => <MenuItem key={year.ano} value={year}>{year.Ano}</MenuItem>)}
-            </Select>
-          </FormControl>
-        </div>
-        <div className="w-6">
-            <Button disabled={!selectedVehicleYear} variant="contained" loading={isLoading} onClick={handleSearch}>Pesquisar</Button>
-        </div>
-      </section>
-        <section className="h-screen">
-          { chartData && <LineChart data={chartData}/> }
+          <div>
+            <Autocomplete
+              disablePortal
+              options={ brands }
+              sx={ { width: 200 } }
+              onChange={ (e,
+                brand) => setSelectedBrand(brand) }
+              renderInput={ (params) => <TextField { ...params } label="Marcas"/> }
+            />
+          </div>
+          <div>
+            <Autocomplete
+              disablePortal
+              disabled={ !selectedBrand }
+              options={ vehicles }
+              sx={ { width: 500 } }
+              onChange={ (e,
+                vehicle) => setSelectedVehicle(vehicle) }
+              renderInput={ (params) => <TextField { ...params } label="Veiculos"/> }
+            />
+          </div>
+          <div>
+            <FormControl sx={ { m: 1, minWidth: 80 } }>
+              <InputLabel id="demo-simple-select-autowidth-label">Ano</InputLabel>
+              <Select
+                disabled={ !selectedVehicle }
+                value={ selectedVehicleYear }
+                onChange={ (e) => {
+                  setSelectedVehicleYear(e.target.value)
+                } }
+                input={ <OutlinedInput label="Name"/> }
+              >
+                { vehicleYears?.map((year) => <MenuItem key={ year.ano } value={ year }>{ year.Ano }</MenuItem>) }
+              </Select>
+            </FormControl>
+          </div>
+          <div className="w-6">
+            <Button disabled={ !selectedVehicleYear } variant="contained" loading={ isLoading }
+                    onClick={ handleSearch }>Pesquisar</Button>
+          </div>
+        </section>
+        <section className="">
+          <div>
+            { chartData && <MonthPrice price={ [...chartData].pop() }/> }
+          </div>
+
+          { chartData &&
+            <div className="flex flex-nowrap justify-center">
+              <div className="py-5 flex flex-col lg:flex-row items-start overflow-scroll">
+                { [3, 6, 12, 24, 48].map((m) => <PriceEvolution key={ m } prices={ chartData.slice(-m) }/>) }
+              </div>
+            </div>
+          }
+        </section>
+        <section className="h-screen mx-0 sm:mx-10">
+          { chartData && <LineChart data={ chartData }/> }
         </section>
       </div>
 

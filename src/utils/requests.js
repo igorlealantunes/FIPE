@@ -28,7 +28,7 @@ export const searchMany = async ({
 
   const monthToIndex = { 'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6, 'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12, }
 
-  const initialMonth = 350;
+  const initialMonth = 350; // ??
   const promises = []
 
   for (let i=initialMonth; i > initialMonth - numMonthsBack; i--) {
@@ -40,14 +40,18 @@ export const searchMany = async ({
     }));
   }
 
-  return (await Promise.all(promises)
-    .then(results => Promise.all(results.map(r => r.json())))
-  )
-    .filter(res => res.Valor)
+  // filter the problematic ones
+  const jsonsPromises = (await Promise.allSettled(promises))
+    .filter(p => p.status === 'fulfilled')
+    .map(p => p.value)
+    .map(p => p.json())
+
+  return (await Promise.all(jsonsPromises))
+    .filter(res => res.Valor) // remove empty ones
     .map((res) => {
       return {
         ...res,
-        valor: Number(res.Valor.toString().replace(/[^0-9.-]+/g,"")),
+        valor: Number(res.Valor.toString().replace(/[^0-9.-]+/g,"")) * 1000,
         ano: Number(res.MesReferencia.toString().replace(/[^0-9.-]+/g,"")),
         mes: res.MesReferencia.toString().split(' ')[0].trim(),
         mesIndex: monthToIndex[res.MesReferencia.toString().split(' ')[0].trim().slice(0, 3).toLowerCase()],
